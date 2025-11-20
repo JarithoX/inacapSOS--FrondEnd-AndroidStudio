@@ -11,6 +11,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -34,23 +40,75 @@ fun LoginScreen(
     var error by remember { mutableStateOf<String?>(null) }
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
+        val curveColor = MaterialTheme.colorScheme.surfaceVariant
+        // Fondo superior con curva
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
+                .align(Alignment.TopCenter)
+        ) {
+            val width = size.width
+            val height = size.height
+
+            val path = Path().apply {
+                moveTo(0f, 0f)
+                lineTo(0f, height * 0.75f)
+                quadraticBezierTo(
+                    width * 0.5f,
+                    height * 1.15f,   // controla la profundidad de la curva
+                    width,
+                    height * 0.8f
+                )
+                lineTo(width, 0f)
+                close()
+            }
+
+            // color claro tipo “panel” del mockup
+            drawPath(
+                path = path,
+                color = curveColor
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            //verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo_inacapsos),
-                contentDescription = "Logo de la aplicación",
-                modifier = Modifier.size(220.dp)
-            )
-
-            Spacer(modifier = Modifier.height(50.dp))
+            // MOD: Box para apilar logo + sombra elíptica bajo los pies
+            Box(
+                modifier = Modifier
+                    .padding(top = 32.dp, bottom = 24.dp)
+                    .height(220.dp)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_inacapsos),
+                    contentDescription = "Logo de la aplicación",
+                    modifier = Modifier
+                        .size(220.dp)
+                        .offset(x = (-10).dp)
+                )
+                Canvas(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .width(140.dp)
+                        .height(26.dp)
+                        .offset( x = (6).dp, y = (-9).dp)
+                ) {
+                    drawOval(
+                        color = Color(0x33000000) // negro con alpha (~20%)
+                    )
+                }
+            }
 
             Text(
                 text = "Iniciar Sesión",
