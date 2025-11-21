@@ -16,6 +16,10 @@ class InacapRepositoryImpl(api1: InacapApi) : InacapRepository {
         return api.register(request)
     }
 
+    override suspend fun createGuard(request: CreateGuardRequestDto) {
+        return api.createGuard(request)
+    }
+
     override suspend fun getReportes(usuarioId: String?): List<ReportDto> {
         return api.getReportes(usuarioId = usuarioId)
     }

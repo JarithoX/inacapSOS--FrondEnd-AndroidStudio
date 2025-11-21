@@ -11,6 +11,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.inacapsos.app.core.AppSession
+import com.inacapsos.app.data.UserRole
 import com.inacapsos.app.data.remote.ApiClient
 import com.inacapsos.app.data.repository.InacapRepository
 import com.inacapsos.app.data.repository.InacapRepositoryImpl
@@ -34,7 +36,9 @@ fun AppNavHost(
                     Screen.Map.route,
                     Screen.Reports.route,
                     Screen.Profile.route,
-                    Screen.EditProfile.route
+                    Screen.EditProfile.route,
+                    Screen.CreateGuard.route,
+                    Screen.Admin.route
                 )
             ) {
                 BottomBar(
@@ -69,8 +73,14 @@ fun AppNavHost(
                 LoginScreen(
                     repository = repository,
                     onLoginSuccess = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true } }
+                        val destination = if (AppSession.userRole == "ADMIN") {
+                            Screen.Admin.route
+                        } else {
+                            Screen.Home.route
+                        }
+                        navController.navigate(destination) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
                     },
                     onRegisterClick = {
                         navController.navigate(Screen.Register.route)
@@ -80,8 +90,20 @@ fun AppNavHost(
             composable(Screen.Home.route) {
                 HomeScreen()
             }
+            composable(Screen.Admin.route) {
+                AdminScreen(
+                    onNavigateToCreateGuard = { navController.navigate(Screen.CreateGuard.route) }
+                )
+            }
+            composable(Screen.CreateGuard.route) {
+                CreateGuardScreen(
+                    repository = repository,
+                    onGuardCreated = { navController.popBackStack() },
+                    onBack = { navController.popBackStack() }
+                )
+            }
             composable(Screen.Sos.route) {
-                SosScreen()
+                SosScreen(repository)
             }
             composable(Screen.Map.route) {
                 MapScreen(

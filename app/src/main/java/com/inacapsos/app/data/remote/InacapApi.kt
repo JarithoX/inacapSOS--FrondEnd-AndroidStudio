@@ -14,6 +14,9 @@ interface InacapApi {
     @POST("usuarios/register")
     suspend fun register(@Body request: RegisterRequestDto)
 
+    @POST("usuarios/create-guard")
+    suspend fun createGuard(@Body request: CreateGuardRequestDto)
+
     @GET("reportes")
     suspend fun getReportes(
         @Query("usuarioId") usuarioId: String? = null

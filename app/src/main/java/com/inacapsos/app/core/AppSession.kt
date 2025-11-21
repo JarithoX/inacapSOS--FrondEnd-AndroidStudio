@@ -5,4 +5,5 @@ object AppSession {
     var userId: String? = null
     var userName: String? = null
     var userEmail: String? = null
+    var userRole: String? = null // "GUARD" o "STUDENT"
 }

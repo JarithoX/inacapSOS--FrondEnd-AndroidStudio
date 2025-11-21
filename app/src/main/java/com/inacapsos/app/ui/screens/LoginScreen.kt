@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import com.inacapsos.app.R
 import com.inacapsos.app.core.AppSession
 import com.inacapsos.app.data.repository.InacapRepository
-import com.inacapsos.app.data.repository.InacapRepositoryImpl
 import kotlinx.coroutines.launch
 
 @Composable
@@ -170,6 +169,7 @@ fun LoginScreen(
                                 AppSession.userId = response.user.id
                                 AppSession.userName = response.user.nombre
                                 AppSession.userEmail = response.user.email
+                                AppSession.userRole = response.user.rol.name
                                 onLoginSuccess()
                             } else {
                                 error = response.message ?: "Usuario o contraseña incorrectos"
