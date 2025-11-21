@@ -41,7 +41,7 @@ fun RegisterScreen(
     var apellido by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") } // <-- NUEVO: Confirmar contraseña
+    var confirmPassword by remember { mutableStateOf("") }
     var edad by remember { mutableStateOf("") }
 
     // Estado para los menús desplegables

@@ -37,8 +37,10 @@ fun LoginScreen(
 
     val scope = rememberCoroutineScope()
 
-    var email by remember { mutableStateOf("testuserR@inacapsos.cl") }
-    var password by remember { mutableStateOf("1234") }
+    // Para el desarrollo cambiar los parametros para entrar con tu cuenta,
+    // en desplique se dejan vacios
+    var email by remember { mutableStateOf("jarod.pinto@inacapmail.cl") }
+    var password by remember { mutableStateOf("jarod123") }
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -168,7 +170,6 @@ fun LoginScreen(
                             val request = LoginRequestDto(
                                 email = email.trim(),
                                 contrasena = password.trim()
-                            // El campo en la API se llama contrasena
                             )
                             val response = repository.login(request)
                             

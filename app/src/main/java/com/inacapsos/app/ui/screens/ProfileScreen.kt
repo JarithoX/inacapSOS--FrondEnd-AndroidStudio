@@ -53,7 +53,7 @@ private fun LoggedInProfileView(
     onLogout: () -> Unit,
     onEditProfile: () -> Unit // Recibe la acción de editar
 ) {
-    val inacapRed = Color(0xFFD52B1E)
+    val inacapRed = MaterialTheme.colorScheme.primary
 
     Column(
         modifier = Modifier
@@ -132,17 +132,30 @@ private fun LoggedInProfileView(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // El botón "Editar Perfil" ahora es funcional
+            Spacer(modifier = Modifier.height(15.dp))
+
             ProfileOptionItem(
                 icon = Icons.Default.Edit,
                 text = "Editar Perfil",
-                onClick = onEditProfile // <-- ¡ACCIÓN CONECTADA!
+                onClick = onEditProfile
             )
-            ProfileOptionItem(icon = Icons.Default.Notifications, text = "Notificaciones", onClick = {})
-            ProfileOptionItem(icon = Icons.Default.Lock, text = "Seguridad", onClick = {})
-            ProfileOptionItem(icon = Icons.Default.Info, text = "Ayuda y Soporte", onClick = {})
+            ProfileOptionItem(
+                icon = Icons.Default.Notifications,
+                text = "Notificaciones",
+                onClick = {}
+            )
+            ProfileOptionItem(
+                icon = Icons.Default.Lock,
+                text = "Seguridad",
+                onClick = {}
+            )
+            ProfileOptionItem(
+                icon = Icons.Default.Info,
+                text = "Ayuda y Soporte",
+                onClick = {}
+            )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(145.dp))
 
             Button(
                 onClick = onLogout,
