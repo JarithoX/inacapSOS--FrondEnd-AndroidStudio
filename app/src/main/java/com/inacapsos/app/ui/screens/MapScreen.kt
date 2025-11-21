@@ -41,6 +41,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import androidx.compose.ui.graphics.Color
+import com.inacapsos.app.data.repository.InacapRepository
 
 // =======================================================================================
 // FUNCIÓN AUXILIAR PARA OBTENER EL ÍCONO DEL MARCADOR
@@ -65,9 +66,8 @@ private fun getMarkerIconForIncident(context: Context, incidentTitle: String): D
 }
 
 @Composable
-fun MapScreen(navController: NavHostController) {
+fun MapScreen(navController: NavHostController, repository: InacapRepository) {
     val context = LocalContext.current
-    val repository = remember { InacapRepositoryImpl() }
     val scope = rememberCoroutineScope()
 
     var showDialog by remember { mutableStateOf(false) }

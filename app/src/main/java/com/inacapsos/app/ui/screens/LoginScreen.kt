@@ -24,14 +24,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.inacapsos.app.R
 import com.inacapsos.app.core.AppSession
+import com.inacapsos.app.data.repository.InacapRepository
 import com.inacapsos.app.data.repository.InacapRepositoryImpl
 import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit
+    repository: InacapRepository,
+    onLoginSuccess: () -> Unit,
+    onRegisterClick: () -> Unit
 ) {
-    val repository = remember { InacapRepositoryImpl() }
+
     val scope = rememberCoroutineScope()
 
     var email by remember { mutableStateOf("testuserR@inacapsos.cl") }
@@ -82,7 +85,7 @@ fun LoginScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // MOD: Box para apilar logo + sombra elíptica bajo los pies
+            // Para apilar logo + sombra elíptica bajo los pies
             Box(
                 modifier = Modifier
                     .padding(top = 32.dp, bottom = 24.dp)
@@ -166,6 +169,7 @@ fun LoginScreen(
                             if (response.user != null) {
                                 AppSession.userId = response.user.id
                                 AppSession.userName = response.user.nombre
+                                AppSession.userEmail = response.user.email
                                 onLoginSuccess()
                             } else {
                                 error = response.message ?: "Usuario o contraseña incorrectos"
@@ -197,7 +201,7 @@ fun LoginScreen(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("¿No tienes una cuenta?")
-                TextButton(onClick = { /* Acción de registro deshabilitada por ahora */ }) {
+                TextButton(onClick = { onRegisterClick() }) {
                     Text("Regístrate", fontWeight = FontWeight.Bold)
                 }
             }

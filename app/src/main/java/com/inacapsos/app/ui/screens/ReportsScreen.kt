@@ -15,13 +15,13 @@ import androidx.compose.ui.unit.sp
 import com.inacapsos.app.core.AppSession
 // CAMBIO: Importar IncidenteDto en lugar de ReportDto
 import com.inacapsos.app.data.remote.dto.IncidenteDto
+import com.inacapsos.app.data.repository.InacapRepository
 import com.inacapsos.app.data.repository.InacapRepositoryImpl
 import kotlinx.coroutines.launch
 
 @Composable
-fun ReportsScreen() {
+fun ReportsScreen(repo : InacapRepository) {
     val inacapRed = Color(0xFFCC0000)
-    val repo = remember { InacapRepositoryImpl() }
 
     // CAMBIO: El estado ahora almacena una lista de IncidenteDto
     var reports by remember { mutableStateOf<List<IncidenteDto>>(emptyList()) }

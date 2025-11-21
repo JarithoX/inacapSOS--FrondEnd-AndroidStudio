@@ -1,9 +1,6 @@
 package com.inacapsos.app.data.remote
 
-import com.inacapsos.app.data.remote.dto.IncidenteDto
-import com.inacapsos.app.data.remote.dto.LoginRequestDto
-import com.inacapsos.app.data.remote.dto.LoginResponseDto
-import com.inacapsos.app.data.remote.dto.ReportDto
+import com.inacapsos.app.data.remote.dto.*
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -13,6 +10,9 @@ interface InacapApi {
 
     @POST("usuarios/login")
     suspend fun login(@Body request: LoginRequestDto): LoginResponseDto
+
+    @POST("usuarios/register")
+    suspend fun register(@Body request: RegisterRequestDto)
 
     @GET("reportes")
     suspend fun getReportes(

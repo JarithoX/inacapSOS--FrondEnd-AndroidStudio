@@ -4,12 +4,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.inacapsos.app.data.remote.ApiClient
+import com.inacapsos.app.data.repository.InacapRepository
+import com.inacapsos.app.data.repository.InacapRepositoryImpl
 import com.inacapsos.app.ui.screens.*
 
 @Composable
@@ -18,6 +22,9 @@ fun AppNavHost(
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: Screen.Splash.route
+    val repository: InacapRepository = remember {
+        InacapRepositoryImpl(ApiClient.api)
+    }
 
     Scaffold(
         bottomBar = {
@@ -26,7 +33,8 @@ fun AppNavHost(
                     Screen.Sos.route,
                     Screen.Map.route,
                     Screen.Reports.route,
-                    Screen.Profile.route
+                    Screen.Profile.route,
+                    Screen.EditProfile.route
                 )
             ) {
                 BottomBar(
@@ -51,7 +59,7 @@ fun AppNavHost(
             composable(Screen.Splash.route) {
                 SplashScreen(
                     onFinished = {
-                        navController.navigate(Screen.Map.route) {  // Cambie de Login -> Mapa
+                        navController.navigate(Screen.Map.route) {
                             popUpTo(Screen.Splash.route) { inclusive = true }
                         }
                     }
@@ -59,10 +67,13 @@ fun AppNavHost(
             }
             composable(Screen.Login.route) {
                 LoginScreen(
+                    repository = repository,
                     onLoginSuccess = {
                         navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
+                            popUpTo(Screen.Login.route) { inclusive = true } }
+                    },
+                    onRegisterClick = {
+                        navController.navigate(Screen.Register.route)
                     }
                 )
             }
@@ -73,23 +84,37 @@ fun AppNavHost(
                 SosScreen()
             }
             composable(Screen.Map.route) {
-                MapScreen(navController = navController)
+                MapScreen(
+                    navController = navController,
+                    repository = repository)
             }
             composable(Screen.Reports.route) {
-                ReportsScreen()
+                ReportsScreen(
+                    repo = repository
+                )
             }
             composable(Screen.Profile.route) {
                 ProfileScreen(
                     onLogout = {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
-                        }
-                    },
-                    // 💡 CAMBIO 5: Agregamos la acción onLogin
+                        } },
                     onLogin = {
-                        navController.navigate(Screen.Login.route) // Navega al Login
-                    }
-                )
+                        navController.navigate(Screen.Login.route) },
+                    onEditProfile = { navController.navigate("edit_profile_screen") })
+            }
+            composable(Screen.EditProfile.route) {
+                EditProfileScreen(
+                    onBack = { navController.popBackStack() })
+            }
+            composable(Screen.Register.route) {
+                RegisterScreen(
+                    repository = repository,
+                    onRegisterSuccess = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        } },
+                    onBack = { navController.popBackStack() })
             }
         }
     }
