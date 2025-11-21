@@ -118,16 +118,19 @@ fun AppNavHost(
             composable(Screen.Profile.route) {
                 ProfileScreen(
                     onLogout = {
+                        AppSession.clear()
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         } },
                     onLogin = {
                         navController.navigate(Screen.Login.route) },
-                    onEditProfile = { navController.navigate("edit_profile_screen") })
+                    onEditProfile = { navController.navigate(Screen.EditProfile.route) })
             }
             composable(Screen.EditProfile.route) {
                 EditProfileScreen(
-                    onBack = { navController.popBackStack() })
+                    repository = repository,
+                    onBack = { navController.popBackStack() },
+                    onSaveSuccess = { navController.popBackStack() })
             }
             composable(Screen.Register.route) {
                 RegisterScreen(

@@ -8,12 +8,20 @@ class InacapRepositoryImpl(api1: InacapApi) : InacapRepository {
 
     private val api = ApiClient.api
 
-    override suspend fun login(email: String, password: String): LoginResponseDto {
-        return api.login(LoginRequestDto(email = email, contrasena = password))
+    override suspend fun login(request: LoginRequestDto): LoginResponseDto {
+        return api.login(request)
     }
 
     override suspend fun register(request: RegisterRequestDto) {
         return api.register(request)
+    }
+
+    override suspend fun getUserDetails(userId: String): UserDto {
+        return api.getUserDetails(userId)
+    }
+
+    override suspend fun updateUser(userId: String, body: UpdateUserDto) {
+        return api.updateUser(userId, body)
     }
 
     override suspend fun createGuard(request: CreateGuardRequestDto) {

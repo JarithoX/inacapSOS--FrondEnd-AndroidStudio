@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.inacapsos.app.R
 import com.inacapsos.app.core.AppSession
+import com.inacapsos.app.data.remote.dto.LoginRequestDto
 import com.inacapsos.app.data.repository.InacapRepository
 import kotlinx.coroutines.launch
 
@@ -164,12 +165,18 @@ fun LoginScreen(
                         isLoading = true
                         error = null
                         try {
-                            val response = repository.login(email.trim(), password)
+                            val request = LoginRequestDto(
+                                email = email.trim(),
+                                contrasena = password.trim()
+                            // El campo en la API se llama contrasena
+                            )
+                            val response = repository.login(request)
+                            
                             if (response.user != null) {
                                 AppSession.userId = response.user.id
                                 AppSession.userName = response.user.nombre
                                 AppSession.userEmail = response.user.email
-                                AppSession.userRole = response.user.rol.name
+                                AppSession.userRole = response.user.rol
                                 onLoginSuccess()
                             } else {
                                 error = response.message ?: "Usuario o contraseña incorrectos"
