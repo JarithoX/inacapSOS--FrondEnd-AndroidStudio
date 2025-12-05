@@ -12,4 +12,8 @@ sealed class Screen(val route: String) {
     object Register : Screen("register_screen")
     object Admin : Screen("admin")
     object CreateGuard : Screen("create_guard")
+
+    object GuardAlerts : Screen("guard_alerts")
+
+
 }

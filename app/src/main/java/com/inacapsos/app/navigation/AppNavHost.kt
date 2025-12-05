@@ -24,13 +24,16 @@ fun AppNavHost(
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: Screen.Splash.route
+
     val repository: InacapRepository = remember {
         InacapRepositoryImpl(ApiClient.api)
     }
 
+    val isGuard = AppSession.userRole == UserRole.GUARD.name
+
     Scaffold(
         bottomBar = {
-            if (currentRoute in listOf(
+            if (!isGuard && currentRoute in listOf(
                     Screen.Home.route,
                     Screen.Sos.route,
                     Screen.Map.route,
@@ -60,41 +63,49 @@ fun AppNavHost(
             startDestination = Screen.Splash.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+
             composable(Screen.Splash.route) {
                 SplashScreen(
                     onFinished = {
-                        navController.navigate(Screen.Map.route) {
+                        val destination = when (AppSession.userRole) {
+                            UserRole.ADMIN.name -> Screen.Admin.route
+                            UserRole.GUARD.name -> Screen.GuardAlerts.route
+                            else -> Screen.Home.route
+                        }
+
+                        navController.navigate(destination) {
                             popUpTo(Screen.Splash.route) { inclusive = true }
                         }
                     }
                 )
             }
+
             composable(Screen.Login.route) {
                 LoginScreen(
                     repository = repository,
                     onLoginSuccess = {
-                        val destination = if (AppSession.userRole == "ADMIN") {
-                            Screen.Admin.route
-                        } else {
-                            Screen.Home.route
+                        val destination = when (AppSession.userRole) {
+                            UserRole.ADMIN.name -> Screen.Admin.route
+                            UserRole.GUARD.name -> Screen.GuardAlerts.route
+                            else -> Screen.Home.route
                         }
+
                         navController.navigate(destination) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
-                    onRegisterClick = {
-                        navController.navigate(Screen.Register.route)
-                    }
+                    onRegisterClick = { navController.navigate(Screen.Register.route) }
                 )
             }
-            composable(Screen.Home.route) {
-                HomeScreen()
-            }
+
+            composable(Screen.Home.route) { HomeScreen() }
+
             composable(Screen.Admin.route) {
                 AdminScreen(
                     onNavigateToCreateGuard = { navController.navigate(Screen.CreateGuard.route) }
                 )
             }
+
             composable(Screen.CreateGuard.route) {
                 CreateGuardScreen(
                     repository = repository,
@@ -102,44 +113,52 @@ fun AppNavHost(
                     onBack = { navController.popBackStack() }
                 )
             }
-            composable(Screen.Sos.route) {
-                SosScreen(repository)
+
+            composable(Screen.GuardAlerts.route) {
+                GuardAlertsScreen(repository)
             }
+
+            composable(Screen.Sos.route) { SosScreen(repository) }
+
             composable(Screen.Map.route) {
-                MapScreen(
-                    navController = navController,
-                    repository = repository)
+                MapScreen(navController = navController, repository = repository)
             }
+
             composable(Screen.Reports.route) {
-                ReportsScreen(
-                    repo = repository
-                )
+                ReportsScreen(repo = repository)
             }
+
             composable(Screen.Profile.route) {
                 ProfileScreen(
                     onLogout = {
                         AppSession.clear()
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
-                        } },
-                    onLogin = {
-                        navController.navigate(Screen.Login.route) },
-                    onEditProfile = { navController.navigate(Screen.EditProfile.route) })
+                        }
+                    },
+                    onLogin = { navController.navigate(Screen.Login.route) },
+                    onEditProfile = { navController.navigate(Screen.EditProfile.route) }
+                )
             }
+
             composable(Screen.EditProfile.route) {
                 EditProfileScreen(
                     repository = repository,
                     onBack = { navController.popBackStack() },
-                    onSaveSuccess = { navController.popBackStack() })
+                    onSaveSuccess = { navController.popBackStack() }
+                )
             }
+
             composable(Screen.Register.route) {
                 RegisterScreen(
                     repository = repository,
                     onRegisterSuccess = {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
-                        } },
-                    onBack = { navController.popBackStack() })
+                        }
+                    },
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }
