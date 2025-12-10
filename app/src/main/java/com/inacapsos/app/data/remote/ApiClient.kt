@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 object ApiClient {
 
     // Cambia esta URL por la de tu API real (por ejemplo http://10.0.2.2:3000)
-    private const val BASE_URL = "http://10.0.2.2:3000"
+    private const val BASE_URL = "https://inacapsos-api-604122993897.southamerica-west1.run.app"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

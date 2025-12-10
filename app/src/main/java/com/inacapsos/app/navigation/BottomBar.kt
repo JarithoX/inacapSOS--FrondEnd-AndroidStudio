@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -22,15 +23,25 @@ data class BottomNavItem(
 @Composable
 fun BottomBar(
     currentRoute: String,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    userRole: String // Este valor debe ser pasado desde la capa superior (ej. la Activity o un ViewModel)
 ) {
-    val items = listOf(
+    val defaultItems = listOf(
         BottomNavItem(Screen.Home.route, "Inicio", Icons.Filled.Home),
         BottomNavItem(Screen.Sos.route, "SOS", Icons.Filled.Warning),
         BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.LocationOn),
         BottomNavItem(Screen.Reports.route, "Reportes", Icons.Filled.List),
         BottomNavItem(Screen.Profile.route, "Perfil", Icons.Filled.Person)
     )
+
+    val items = mutableListOf<BottomNavItem>()
+    items.addAll(defaultItems)
+
+    if (userRole == "ADMIN" || userRole == "admin") {
+        items.add(
+            BottomNavItem(Screen.Admin.route, "Admin", Icons.Filled.Settings)
+        )
+    }
 
     NavigationBar {
         items.forEach { item ->

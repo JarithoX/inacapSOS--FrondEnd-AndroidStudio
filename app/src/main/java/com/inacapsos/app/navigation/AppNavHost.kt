@@ -45,7 +45,9 @@ fun AppNavHost(
                 )
             ) {
                 BottomBar(
-                    currentRoute = currentRoute,
+                    currentRoute =
+                        currentRoute,
+                    userRole = AppSession.userRole ?: "", // Para saber si es admin o no
                     onNavigate = { route ->
                         if (route != currentRoute) {
                             navController.navigate(route) {
