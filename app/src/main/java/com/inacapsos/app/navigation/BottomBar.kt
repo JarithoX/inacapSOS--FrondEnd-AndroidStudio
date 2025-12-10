@@ -31,8 +31,6 @@ fun BottomBar(
 
     val defaultItems = listOf(
         BottomNavItem(Screen.Home.route, "Inicio", Icons.Filled.Home),
-        BottomNavItem(Screen.Sos.route, "SOS", Icons.Filled.Warning),
-        BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.LocationOn),
     )
     val items = mutableListOf<BottomNavItem>()
     items.addAll(defaultItems)
@@ -41,15 +39,41 @@ fun BottomBar(
         items.add(
             BottomNavItem(Screen.Admin.route, "Admin", Icons.Filled.Settings)
         )
+        items.add(
+            BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.LocationOn)
+        )
     }
 
-    if (AppSession.userRole.equals("guardia", ignoreCase = true)) {
-        items.add(BottomNavItem(Screen.GuardAlerts.route, "Alertas", Icons.Filled.AdminPanelSettings))
-    } else {
-        items.add(BottomNavItem(Screen.Reports.route, "Reportes", Icons.Filled.List))
+    if (userRole == "ESTUDIANTE" || userRole == "estudiante") {
+        items.add(
+            BottomNavItem(Screen.Admin.route, "SOS", Icons.Filled.Warning)
+        )
+        items.add(
+            BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.LocationOn)
+        )
+        items.add(
+            BottomNavItem(Screen.Reports.route, "Reportes", Icons.Filled.List)
+        )
+    }
+
+    if (userRole == "GUARDIA" || userRole == "guardia") {
+        items.add(
+            BottomNavItem(Screen.GuardAlerts.route, "Alertas", Icons.Filled.AdminPanelSettings)
+        )
+        items.add(
+            BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.LocationOn)
+        )
     }
 
     items.add(BottomNavItem(Screen.Profile.route, "Perfil", Icons.Filled.Person))
+
+
+    //if (AppSession.userRole.equals("guardia", ignoreCase = true)) {
+    //    items.add(BottomNavItem(Screen.GuardAlerts.route, "Alertas", Icons.Filled.AdminPanelSettings))
+    //} else {
+    //    items.add(BottomNavItem(Screen.Reports.route, "Reportes", Icons.Filled.List))
+    //}
+
 
     NavigationBar {
         items.forEach { item ->

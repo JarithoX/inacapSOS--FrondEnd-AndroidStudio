@@ -37,8 +37,8 @@ fun LoginScreen(
 
     val scope = rememberCoroutineScope()
 
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("jarod.pinto@inacapmail.cl") }
+    var password by remember { mutableStateOf("jarod123") }
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 

@@ -18,7 +18,7 @@ fun GuardBottomBar(
 ) {
     val items = mutableListOf<BottomNavItem>()
 
-    if (AppSession.userRole == "GUARD") {
+    if (AppSession.userRole == "GUARDIA" || AppSession.userRole == "guardia") {
         items.add(BottomNavItem(Screen.GuardAlerts.route, "Alertas", Icons.Filled.List))
     }
     items.add(BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.Map))
