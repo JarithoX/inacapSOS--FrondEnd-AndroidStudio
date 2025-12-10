@@ -1,17 +1,46 @@
 package com.inacapsos.app.ui.screens
 
-import androidx.compose.foundation.layout.*
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.inacapsos.app.data.remote.dto.IncidenteDto
+import com.inacapsos.app.data.remote.dto.UserDto
 import com.inacapsos.app.data.repository.InacapRepository
 import kotlinx.coroutines.launch
 
@@ -23,16 +52,18 @@ fun GuardAlertsScreen(
     val scope = rememberCoroutineScope()
 
     var incidentes by remember { mutableStateOf<List<IncidenteDto>>(emptyList()) }
+    var users by remember { mutableStateOf<List<UserDto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var selectedEstado by remember { mutableStateOf("TODOS") }
 
-    fun cargarIncidentes() {
+    fun loadData() {
         scope.launch {
             isLoading = true
             error = null
             try {
                 incidentes = repository.getIncidentes()
+                users = repository.getUsers()
             } catch (e: Exception) {
                 error = e.message ?: "No se pudieron cargar las alertas."
             } finally {
@@ -42,7 +73,7 @@ fun GuardAlertsScreen(
     }
 
     LaunchedEffect(Unit) {
-        cargarIncidentes()
+        loadData()
     }
 
     Scaffold(
@@ -50,7 +81,7 @@ fun GuardAlertsScreen(
             TopAppBar(
                 title = { Text("Panel de Alertas - Guardia") },
                 actions = {
-                    IconButton(onClick = { cargarIncidentes() }) {
+                    IconButton(onClick = { loadData() }) {
                         Icon(imageVector = Icons.Filled.Refresh, contentDescription = "Actualizar")
                     }
                 }
@@ -102,12 +133,14 @@ fun GuardAlertsScreen(
                                     incidente.estado.equals(selectedEstado, ignoreCase = true)
                         }
 
+                        val userMap = users.associateBy { it.id }
+
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(listaFiltrada) { incidente ->
-                                IncidenteCard(incidente)
+                                IncidenteCard(incidente, userMap)
                             }
                         }
                     }
@@ -132,8 +165,11 @@ private fun EstadoChip(
 
 @Composable
 private fun IncidenteCard(
-    incidente: IncidenteDto
+    incidente: IncidenteDto,
+    userMap: Map<String, UserDto>
 ) {
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -148,10 +184,22 @@ private fun IncidenteCard(
             Text(text = incidente.descripcion)
             Spacer(modifier = Modifier.height(8.dp))
             Text("Estado: ${incidente.estado}")
-            incidente.userId?.let { Text("Usuario: $it") }
+            incidente.userId?.let {
+                val userName = userMap[it]?.nombre ?: "Desconocido"
+                Text("Usuario: $userName")
+            }
             incidente.latitud?.let { lat ->
                 incidente.longitud?.let { lng ->
-                    Text("Ubicación: $lat, $lng")
+                    val locationText = "Ubicación: $lat, $lng"
+                    Text(
+                        text = locationText,
+                        modifier = Modifier.clickable {
+                            val gmmIntentUri = Uri.parse("geo:$lat,$lng?q=$lat,$lng(Ubicación del incidente)")
+                            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                            mapIntent.setPackage("com.google.android.apps.maps")
+                            context.startActivity(mapIntent)
+                        }
+                    )
                 }
             }
         }

@@ -31,16 +31,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     repository: InacapRepository,
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (String) -> Unit,
     onRegisterClick: () -> Unit
 ) {
 
     val scope = rememberCoroutineScope()
 
-    // Para el desarrollo cambiar los parametros para entrar con tu cuenta,
-    // en desplique se dejan vacios
-    var email by remember { mutableStateOf("jarod.pinto@inacapmail.cl") }
-    var password by remember { mutableStateOf("jarod123") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -172,13 +170,14 @@ fun LoginScreen(
                                 contrasena = password.trim()
                             )
                             val response = repository.login(request)
-                            
+
                             if (response.user != null) {
                                 AppSession.userId = response.user.id
                                 AppSession.userName = response.user.nombre
                                 AppSession.userEmail = response.user.email
                                 AppSession.userRole = response.user.rol
-                                onLoginSuccess()
+                                AppSession.save()
+                                onLoginSuccess(response.user.rol)
                             } else {
                                 error = response.message ?: "Usuario o contraseña incorrectos"
                             }

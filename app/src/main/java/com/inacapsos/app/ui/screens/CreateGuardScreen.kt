@@ -1,5 +1,7 @@
 package com.inacapsos.app.ui.screens
 
+import android.util.Log
+import android.util.Patterns
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,6 +20,10 @@ import com.inacapsos.app.data.remote.dto.CreateGuardRequestDto
 import com.inacapsos.app.data.repository.InacapRepository
 import kotlinx.coroutines.launch
 
+private fun isEmailValid(email: String): Boolean {
+    return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateGuardScreen(
@@ -30,6 +36,8 @@ fun CreateGuardScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    var isEmailError by remember { mutableStateOf(false) }
+    var isPasswordError by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -80,22 +88,40 @@ fun CreateGuardScreen(
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    isEmailError = !isEmailValid(it)
+                },
                 label = { Text("Correo Electrónico") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true
+                singleLine = true,
+                isError = isEmailError,
+                supportingText = {
+                    if (isEmailError) {
+                        Text("Por favor, introduce un correo electrónico válido.")
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    isPasswordError = it.length < 8
+                },
                 label = { Text("Contraseña") },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation(),
-                singleLine = true
+                singleLine = true,
+                isError = isPasswordError,
+                supportingText = {
+                    if (isPasswordError) {
+                        Text("La contraseña debe tener al menos 8 caracteres.")
+                    }
+                }
             )
-            
+
             if (error != null) {
                 Text(
                     text = error!!,
@@ -108,6 +134,11 @@ fun CreateGuardScreen(
 
             Button(
                 onClick = {
+                    isEmailError = !isEmailValid(email)
+                    isPasswordError = password.length < 8
+                    if (isEmailError || isPasswordError) {
+                        return@Button
+                    }
                     scope.launch {
                         isLoading = true
                         error = null
@@ -116,20 +147,27 @@ fun CreateGuardScreen(
                                 nombre = nombre.trim(),
                                 apellido = apellido.trim(),
                                 email = email.trim(),
-                                password = password
+                                password = password,
+                                rolId = "3"
                             )
 
                             repository.createGuard(request)
                             onGuardCreated()
 
                         } catch (e: Exception) {
-                            error = e.message ?: "Ocurrió un error inesperado."
+                            Log.e("CreateGuardScreen", "Error al crear guardia", e)
+                            val errorMessage = e.message
+                            if (errorMessage != null && ("500" in errorMessage || "Internal Server Error" in errorMessage)) {
+                                error = "El correo electrónico ya podría estar en uso o hubo un problema en el servidor. Intente nuevamente."
+                            } else {
+                                error = errorMessage ?: "Ocurrió un error inesperado."
+                            }
                         } finally {
                             isLoading = false
                         }
                     }
                 },
-                enabled = !isLoading && listOf(nombre, apellido, email, password).all { it.isNotBlank() },
+                enabled = !isLoading && listOf(nombre, apellido, email, password).all { it.isNotBlank() } && !isEmailError && !isPasswordError,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
