@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -8,7 +9,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.inacapsos.app"
+        applicationId = "com.example.inacapsos"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -52,6 +53,9 @@ android {
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
+    implementation("com.google.firebase:firebase-firestore")
+
     implementation("com.google.android.gms:play-services-location:21.3.0")
     val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
     implementation(composeBom)
