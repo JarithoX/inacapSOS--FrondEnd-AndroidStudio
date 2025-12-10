@@ -37,16 +37,16 @@ fun BottomBar(
 
     if (userRole == "ADMIN" || userRole == "admin") {
         items.add(
-            BottomNavItem(Screen.Admin.route, "Admin", Icons.Filled.Settings)
+            BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.LocationOn)
         )
         items.add(
-            BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.LocationOn)
+            BottomNavItem(Screen.Admin.route, "Admin", Icons.Filled.Settings)
         )
     }
 
     if (userRole == "ESTUDIANTE" || userRole == "estudiante") {
         items.add(
-            BottomNavItem(Screen.Admin.route, "SOS", Icons.Filled.Warning)
+            BottomNavItem(Screen.Sos.route, "SOS", Icons.Filled.Warning)
         )
         items.add(
             BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.LocationOn)
@@ -66,14 +66,6 @@ fun BottomBar(
     }
 
     items.add(BottomNavItem(Screen.Profile.route, "Perfil", Icons.Filled.Person))
-
-
-    //if (AppSession.userRole.equals("guardia", ignoreCase = true)) {
-    //    items.add(BottomNavItem(Screen.GuardAlerts.route, "Alertas", Icons.Filled.AdminPanelSettings))
-    //} else {
-    //    items.add(BottomNavItem(Screen.Reports.route, "Reportes", Icons.Filled.List))
-    //}
-
 
     NavigationBar {
         items.forEach { item ->
