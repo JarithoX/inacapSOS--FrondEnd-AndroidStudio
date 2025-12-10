@@ -33,7 +33,24 @@ fun AppNavHost(
 
     Scaffold(
         bottomBar = {
-            if (!isGuard && currentRoute in listOf(
+            if (isGuard && currentRoute in listOf(
+                    Screen.GuardAlerts.route,
+                    Screen.Map.route,
+                    Screen.Profile.route
+                )
+            ) {
+                GuardBottomBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { route ->
+                        if (route != currentRoute) {
+                            navController.navigate(route) {
+                                popUpTo(Screen.GuardAlerts.route) { inclusive = false }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                )
+            } else if (!isGuard && currentRoute in listOf(
                     Screen.Home.route,
                     Screen.Sos.route,
                     Screen.Map.route,
@@ -85,8 +102,8 @@ fun AppNavHost(
             composable(Screen.Login.route) {
                 LoginScreen(
                     repository = repository,
-                    onLoginSuccess = {
-                        val destination = when (AppSession.userRole) {
+                    onLoginSuccess = { userRole ->
+                        val destination = when (userRole) {
                             UserRole.ADMIN.name -> Screen.Admin.route
                             UserRole.GUARD.name -> Screen.GuardAlerts.route
                             else -> Screen.Home.route
