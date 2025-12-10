@@ -18,8 +18,13 @@ object ApiClient {
 
     private val authInterceptor = okhttp3.Interceptor { chain ->
         val requestBuilder = chain.request().newBuilder()
-        AppSession.token?.let {
-            requestBuilder.addHeader("Authorization", "Bearer $it")
+
+        val token = AppSession.token
+        if (token.isNullOrEmpty()){
+            android.util.Log.e("API_DEBUG", "⚠️ ALERTA: Se está intentando hacer una petición SIN TOKEN. Por eso falla con 401.")
+        } else {
+            android.util.Log.d("API_DEBUG", "✅ TOKEN ENVIADO: Bearer $token")
+            requestBuilder.addHeader("Authorization", "Bearer $token")
         }
         chain.proceed(requestBuilder.build())
     }

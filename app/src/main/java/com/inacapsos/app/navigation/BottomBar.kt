@@ -35,10 +35,13 @@ fun BottomBar(
     val items = mutableListOf<BottomNavItem>()
     items.addAll(defaultItems)
 
-    if (userRole == "ADMIN" || userRole == "admin") {
+    if (userRole == "") {
         items.add(
             BottomNavItem(Screen.Map.route, "Mapa", Icons.Filled.LocationOn)
         )
+    }
+
+    if (userRole == "ADMIN" || userRole == "admin") {
         items.add(
             BottomNavItem(Screen.Admin.route, "Admin", Icons.Filled.Settings)
         )

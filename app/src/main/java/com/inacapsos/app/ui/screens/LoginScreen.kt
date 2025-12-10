@@ -172,6 +172,8 @@ fun LoginScreen(
                             val response = repository.login(request)
 
                             if (response.user != null) {
+                                AppSession.token = response.token
+                                android.util.Log.d("LOGIN_FINAL", "Token recibido: ${response.token}")
                                 AppSession.userId = response.user.id
                                 AppSession.userName = response.user.nombre
                                 AppSession.userEmail = response.user.email

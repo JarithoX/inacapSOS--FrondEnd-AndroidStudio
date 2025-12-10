@@ -3,7 +3,7 @@ package com.inacapsos.app.data.remote.dto
 data class UserDto(
     val id: String,
     val nombre: String,
-    val apellido: String?, // Hacemos los nuevos campos opcionales
+    val apellido: String?,
     val email: String,
     val rol: String,
     val edad: Int?,
