@@ -78,13 +78,13 @@ fun AdminScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
             ) {
-                Text("Crear Cuenta de Guardia")
+                Text("Crear Cuenta de Supervisor")
             }
 
             HorizontalDivider()
 
             Text(
-                text = "Lista de Guardias Activos",
+                text = "Lista de Supervisores Activos",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.align(Alignment.Start)
             )
@@ -93,7 +93,7 @@ fun AdminScreen(
                 CircularProgressIndicator()
             } else if (guardias.isEmpty()) {
                 Text(
-                    text = "No hay guardias registrados.",
+                    text = "No hay Supervisores registrados.",
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 20.dp)
                 )
@@ -155,7 +155,7 @@ fun GuardiaItem(
             IconButton(onClick = onDeleteClick) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar guardia",
+                    contentDescription = "Eliminar Supervisor",
                     tint = Color.Red
                 )
             }

@@ -45,7 +45,7 @@ fun CreateGuardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Crear Cuenta de Guardia") },
+                title = { Text("Crear Cuenta de Supervisor") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver atrás")
@@ -64,7 +64,7 @@ fun CreateGuardScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "Datos del Nuevo Guardia",
+                "Datos del Nuevo Supervisor",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -155,7 +155,7 @@ fun CreateGuardScreen(
                             onGuardCreated()
 
                         } catch (e: Exception) {
-                            Log.e("CreateGuardScreen", "Error al crear guardia", e)
+                            Log.e("CreateGuardScreen", "Error al crear Supervisor", e)
                             val errorMessage = e.message
                             if (errorMessage != null && ("500" in errorMessage || "Internal Server Error" in errorMessage)) {
                                 error = "El correo electrónico ya podría estar en uso o hubo un problema en el servidor. Intente nuevamente."

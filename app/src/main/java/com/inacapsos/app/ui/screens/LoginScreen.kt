@@ -27,6 +27,8 @@ import com.inacapsos.app.core.AppSession
 import com.inacapsos.app.data.remote.dto.LoginRequestDto
 import com.inacapsos.app.data.repository.InacapRepository
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(
@@ -165,26 +167,42 @@ fun LoginScreen(
                         isLoading = true
                         error = null
                         try {
-                            val request = LoginRequestDto(
-                                email = email.trim(),
-                                contrasena = password.trim()
-                            )
-                            val response = repository.login(request)
+                            // 1. AUTENTICACIÓN DIRECTA CON FIREBASE
+                            val auth = FirebaseAuth.getInstance()
+                            val authResult = auth.signInWithEmailAndPassword(email.trim(), password.trim()).await()
+                            val firebaseUser = authResult.user
 
-                            if (response.user != null) {
-                                AppSession.token = response.token
-                                android.util.Log.d("LOGIN_FINAL", "Token recibido: ${response.token}")
-                                AppSession.userId = response.user.id
-                                AppSession.userName = response.user.nombre
-                                AppSession.userEmail = response.user.email
-                                AppSession.userRole = response.user.rol
-                                AppSession.save()
-                                onLoginSuccess(response.user.rol)
-                            } else {
-                                error = response.message ?: "Usuario o contraseña incorrectos"
+                            if (firebaseUser != null) {
+                                // 2. OBTENER EL TOKEN REAL
+                                val tokenResult = firebaseUser.getIdToken(true).await()
+                                val realToken = tokenResult.token
+
+                                // 3. GUARDAR EL TOKEN (La llave maestra)
+                                AppSession.token = realToken
+                                AppSession.userEmail = firebaseUser.email
+                                AppSession.userId = firebaseUser.uid
+
+                                android.util.Log.d("LOGIN_FIREBASE", "✅ Token Oficial: $realToken")
+
+                                // 4. RECUPERAR EL ROL (El puente)
+                                val usuarios = repository.getUsers()
+
+                                val miUsuario = usuarios.find { it.email.equals(email.trim(), ignoreCase = true) }
+
+                                if (miUsuario != null) {
+                                    AppSession.userRole = miUsuario.rol
+                                    AppSession.userName = miUsuario.nombre
+                                    AppSession.save() // Guardamos todo en el celular
+
+                                    onLoginSuccess(miUsuario.rol) // Navegamos a la pantalla correcta
+                                } else {
+                                    error = "Usuario autenticado, pero no tiene rol asignado en la base de datos."
+                                    AppSession.clear() // Limpiamos por seguridad
+                                }
                             }
                         } catch (e: Exception) {
-                            error = e.message ?: "No se pudo iniciar sesión"
+                            error = "Error: ${e.message}"
+                            android.util.Log.e("LOGIN_ERROR", "Fallo login", e)
                         } finally {
                             isLoading = false
                         }
