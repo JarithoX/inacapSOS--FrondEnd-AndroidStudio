@@ -7,6 +7,9 @@ import com.google.gson.annotations.SerializedName
  * Esta es la única estructura de datos que la app manejará.
  */
 data class IncidenteDto(
+    @SerializedName("id")
+    val id: String? = null,
+
     @SerializedName("titulo")
     val titulo: String,
 
@@ -30,7 +33,11 @@ data class IncidenteDto(
 
     // Se hace opcional (nullable) porque no todos los reportes tendrán evidencia.
     @SerializedName("evidencia_url")
-    val evidenciaUrl: String? = null
+    val evidenciaUrl: String? = null,
+
+    // motivo de la cancelación
+    @SerializedName("motivo_cancelacion")
+    val motivo_cancelacion: String? = null
 )
 
 /**

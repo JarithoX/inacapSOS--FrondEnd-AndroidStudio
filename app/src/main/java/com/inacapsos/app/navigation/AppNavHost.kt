@@ -1,5 +1,9 @@
 package com.inacapsos.app.navigation
 
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.inacapsos.app.ui.screens.IncidentDetailScreen
+import com.inacapsos.app.ui.screens.StudentIncidentDetailScreen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -117,7 +121,15 @@ fun AppNavHost(
                 )
             }
 
-            composable(Screen.Home.route) { HomeScreen() }
+            composable(Screen.Home.route) {
+                HomeScreen(
+                    repository = repository,
+                    onNavigateToMap = {
+                        navController.navigate(Screen.Map.route)
+                    },
+                    onNavigate = { route -> navController.navigate(route) }
+                )
+            }
 
             composable(Screen.Admin.route) {
                 AdminScreen(
@@ -134,7 +146,10 @@ fun AppNavHost(
             }
 
             composable(Screen.GuardAlerts.route) {
-                GuardAlertsScreen(repository)
+                GuardAlertsScreen(
+                    repository = repository,
+                    onNavigate = { route -> navController.navigate(route) }
+                )
             }
 
             composable(Screen.Sos.route) { SosScreen(repository) }
@@ -144,7 +159,10 @@ fun AppNavHost(
             }
 
             composable(Screen.Reports.route) {
-                ReportsScreen(repo = repository)
+                ReportsScreen(
+                    repo = repository,
+                    onNavigate = { route -> navController.navigate(route) }
+                )
             }
 
             composable(Screen.Profile.route) {
@@ -177,6 +195,32 @@ fun AppNavHost(
                         }
                     },
                     onBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = Screen.IncidentDetail.route,
+                arguments = listOf(navArgument("incidenteId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                // Recuperamos el ID que viene en la navegación
+                val incidenteId = backStackEntry.arguments?.getString("incidenteId") ?: ""
+
+                // Llamamos a la pantalla de detalle (La crearemos en el siguiente paso)
+                IncidentDetailScreen(
+                    incidenteId = incidenteId,
+                    repository = repository,
+                    onNavigateBack = { navController.popBackStack() } // Para volver atrás
+                )
+            }
+            composable(
+                route = Screen.StudentIncidentDetail.route,
+                arguments = listOf(navArgument("incidenteId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val incidenteId = backStackEntry.arguments?.getString("incidenteId") ?: ""
+
+                StudentIncidentDetailScreen(
+                    incidenteId = incidenteId,
+                    repository = repository,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }

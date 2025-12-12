@@ -48,4 +48,10 @@ interface InacapApi {
 
     @GET("incidente")
     suspend fun getIncidentes(): List<IncidenteDto>
+
+    @PUT("incidente/{id}")
+    suspend fun updateIncidente(
+        @Path("id") id: String,
+        @Body body: Map<String, String>
+    ): Response<Void>
 }

@@ -1,7 +1,6 @@
 package com.inacapsos.app.data.repository
 
 import com.inacapsos.app.core.AppSession
-import com.inacapsos.app.data.remote.ApiClient
 import com.inacapsos.app.data.remote.InacapApi
 import com.inacapsos.app.data.remote.dto.*
 
@@ -50,5 +49,19 @@ class InacapRepositoryImpl(private val api: InacapApi) : InacapRepository {
 
     override suspend fun getIncidentes(): List<IncidenteDto> {
         return api.getIncidentes()
+    }
+    override suspend fun updateIncidenteState(id: String, nuevoEstado: String, motivo: String?): Boolean {
+        return try {
+            val body = mutableMapOf("estado" to nuevoEstado)
+            if (motivo != null) {
+                body["motivo_cancelacion"] = motivo
+            }
+
+            val response = api.updateIncidente(id, body)
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 }

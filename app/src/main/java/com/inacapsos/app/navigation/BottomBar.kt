@@ -30,7 +30,8 @@ fun BottomBar(
 ) {
 
     val defaultItems = listOf(
-        BottomNavItem(Screen.Home.route, "Inicio", Icons.Filled.Home),
+        BottomNavItem(Screen.Home.route, "Inicio", Icons.Filled.Home)
+
     )
     val items = mutableListOf<BottomNavItem>()
     items.addAll(defaultItems)
