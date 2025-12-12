@@ -1,5 +1,6 @@
 package com.inacapsos.app.data.remote
 
+import com.inacapsos.app.data.remote.dto.ComentarioDto
 import com.inacapsos.app.data.remote.dto.CreateGuardRequestDto
 import com.inacapsos.app.data.remote.dto.IncidenteDto
 import com.inacapsos.app.data.remote.dto.LoginRequestDto
@@ -54,4 +55,10 @@ interface InacapApi {
         @Path("id") id: String,
         @Body body: Map<String, String>
     ): Response<Void>
+
+    @POST("incidente/{id}/comentarios")
+    suspend fun addComentario(@Path("id") id: String, @Body body: Map<String, String>): Response<ComentarioDto>
+
+    @GET("incidente/{id}/comentarios")
+    suspend fun getComentarios(@Path("id") id: String): List<ComentarioDto>
 }

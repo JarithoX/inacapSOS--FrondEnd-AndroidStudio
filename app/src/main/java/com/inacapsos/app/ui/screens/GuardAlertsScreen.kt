@@ -458,9 +458,9 @@ fun SosCard(incidente: IncidenteDto, userMap: Map<String, UserDto>, onClick: () 
                 }
             }
             Text(
-                "Usuario: $userName activó el botón de pánico.",
+                "$userName activó el botón de pánico.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF8B0000),
+                color = Color(0xFF434343),
                 maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium
             )
             Button(

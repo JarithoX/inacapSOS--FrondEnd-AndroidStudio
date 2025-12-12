@@ -13,4 +13,6 @@ interface InacapRepository {
     suspend fun reportIncident(incidentData: Map<String, Any>)
     suspend fun getIncidentes(): List<IncidenteDto>
     suspend fun updateIncidenteState(id: String, nuevoEstado: String, motivo: String? = null): Boolean
+    suspend fun getComentarios(incidenteId: String): List<ComentarioDto>
+    suspend fun enviarComentario(incidenteId: String, texto: String, userId: String, nombre: String): Boolean
 }

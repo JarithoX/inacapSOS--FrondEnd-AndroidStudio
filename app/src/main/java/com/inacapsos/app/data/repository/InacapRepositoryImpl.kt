@@ -64,4 +64,24 @@ class InacapRepositoryImpl(private val api: InacapApi) : InacapRepository {
             false
         }
     }
+    override suspend fun getComentarios(incidenteId: String): List<ComentarioDto> {
+        return try {
+            api.getComentarios(incidenteId)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    override suspend fun enviarComentario(incidenteId: String, texto: String, userId: String, nombre: String): Boolean {
+        return try {
+            val body = mapOf(
+                "texto" to texto,
+                "userId" to userId,
+                "nombreUsuario" to nombre
+            )
+            val response = api.addComentario(incidenteId, body)
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
