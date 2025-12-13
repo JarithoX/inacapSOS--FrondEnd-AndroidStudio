@@ -37,7 +37,10 @@ data class IncidenteDto(
 
     // motivo de la cancelación
     @SerializedName("motivo_cancelacion")
-    val motivo_cancelacion: String? = null
+    val motivo_cancelacion: String? = null,
+
+    @SerializedName("tieneComentarios")
+    val tieneComentarios: Boolean = false
 )
 
 /**

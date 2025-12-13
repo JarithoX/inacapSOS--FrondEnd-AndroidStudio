@@ -61,20 +61,48 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import androidx.compose.foundation.Image
+
 // =======================================================================================
 // HELPER: ÍCONOS DE MAPA
 // =======================================================================================
-private fun getMarkerIconForIncident(context: Context, incidentTitle: String): Drawable? {
-    val drawableId = when {
-        incidentTitle.contains("Seguridad", true) -> R.drawable.marker_reporte_emergencia
-        incidentTitle.contains("Médica", true) -> R.drawable.marker_reporte_emergencia_medica
-        incidentTitle.contains("Incendio", true) -> R.drawable.marker_red
-        incidentTitle.contains("Robo", true) -> R.drawable.marker_red
-        incidentTitle.contains("Acoso", true) -> R.drawable.marker_yellow
-        incidentTitle.contains("SOS", true) -> R.drawable.marker_red
-        else -> R.drawable.marker_green
+private fun getMarkerIconForIncident(
+    context: Context,
+    incidentTitle: String,
+    hasComments: Boolean
+): Drawable? {
+
+    val drawableId = if (hasComments) {
+        when {
+            incidentTitle.contains("Seguridad", true) -> R.drawable.marker_reporte_emergencia_message
+            incidentTitle.contains("Médica", true) -> R.drawable.marker_reporte_emergencia_medica_message
+            incidentTitle.contains("Incendio", true) -> R.drawable.marker_reporte_incendio_message
+            incidentTitle.contains("Robo", true) -> R.drawable.marker_reporte_robo_message
+            incidentTitle.contains("Acoso", true) -> R.drawable.marker_reporte_acoso_message
+            incidentTitle.contains("SOS", true) -> R.drawable.marker_alerta_sos_message
+            incidentTitle.contains("Otro", true) -> R.drawable.marker_reporte_otros_message
+            else -> R.drawable.marker_else_message
+        }
+    } else {
+        // VARIANTE NORMAL
+        when {
+            incidentTitle.contains("Seguridad", true) -> R.drawable.marker_reporte_emergencia
+            incidentTitle.contains("Médica", true) -> R.drawable.marker_reporte_emergencia_medica
+            incidentTitle.contains("Incendio", true) -> R.drawable.marker_reporte_incendio
+            incidentTitle.contains("Robo", true) -> R.drawable.marker_reporte_robo
+            incidentTitle.contains("Acoso", true) -> R.drawable.marker_reporte_acoso
+            incidentTitle.contains("SOS", true) -> R.drawable.marker_alerta_sos
+            incidentTitle.contains("Otro", true) -> R.drawable.marker_reporte_otros
+            else -> R.drawable.marker_else
+        }
     }
     return ContextCompat.getDrawable(context, drawableId)
+
+    // return getBitmapFromVector(context, drawableId)    // ¡IMPORTANTE! Usar el convertidor para que se vea en el mapa
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,6 +140,8 @@ fun MapScreen(navController: NavHostController, repository: InacapRepository) {
 
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
+    var userHeading by remember { mutableFloatStateOf(0f) }
+
     // Permisos
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -148,7 +178,52 @@ fun MapScreen(navController: NavHostController, repository: InacapRepository) {
         }
     }
 
-    // 2. POLLING: Actualizar mapa cada 15s
+    DisposableEffect(Unit) {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val accelerometerReading = FloatArray(3)
+        val magnetometerReading = FloatArray(3)
+        val rotationMatrix = FloatArray(9)
+        val orientationAngles = FloatArray(3)
+        // FACTOR DE SUAVIZADO (ALPHA)
+        val alpha = 0.09f
+
+        val sensorListener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                    // Aplicamos el filtro a cada eje del acelerómetro
+                    accelerometerReading[0] = alpha * event.values[0] + (1 - alpha) * accelerometerReading[0]
+                    accelerometerReading[1] = alpha * event.values[1] + (1 - alpha) * accelerometerReading[1]
+                    accelerometerReading[2] = alpha * event.values[2] + (1 - alpha) * accelerometerReading[2]
+
+                } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+                    // Aplicamos el filtro a cada eje del magnetómetro
+                    magnetometerReading[0] = alpha * event.values[0] + (1 - alpha) * magnetometerReading[0]
+                    magnetometerReading[1] = alpha * event.values[1] + (1 - alpha) * magnetometerReading[1]
+                    magnetometerReading[2] = alpha * event.values[2] + (1 - alpha) * magnetometerReading[2]
+                }
+                // Calcular orientación
+                SensorManager.getRotationMatrix(rotationMatrix, null, accelerometerReading, magnetometerReading)
+                SensorManager.getOrientation(rotationMatrix, orientationAngles)
+                // Convertir radianes a grados y ajustar (Azimut)
+                val azimuthInRadians = orientationAngles[0]
+                val azimuthInDegrees = Math.toDegrees(azimuthInRadians.toDouble()).toFloat()
+
+                // Normalizar a 0-360
+                userHeading = (azimuthInDegrees + 360) % 360
+            }
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+
+        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+
+        sensorManager.registerListener(sensorListener, accelerometer, SensorManager.SENSOR_DELAY_UI)
+        sensorManager.registerListener(sensorListener, magnetometer, SensorManager.SENSOR_DELAY_UI)
+
+        onDispose { sensorManager.unregisterListener(sensorListener) }
+    }
+
+    // 2. POLLING: Actualizar mapa cada 20s
     LaunchedEffect(Unit) {
         isLoading = true
         while(true) {
@@ -158,7 +233,7 @@ fun MapScreen(navController: NavHostController, repository: InacapRepository) {
                 incidentes = nuevos
             } catch (e: Exception) { e.printStackTrace() }
             finally { isLoading = false; isRefreshing = false }
-            delay(15000)
+            delay(20000)
         }
     }
 
@@ -328,7 +403,7 @@ fun MapScreen(navController: NavHostController, repository: InacapRepository) {
     }
 
     // MARCADORES MAPA
-    LaunchedEffect(incidentes, userLocation, mapView) {
+    LaunchedEffect(incidentes, userLocation, mapView, userHeading) {
         val map = mapView ?: return@LaunchedEffect
         map.overlays.clear()
 
@@ -342,11 +417,24 @@ fun MapScreen(navController: NavHostController, repository: InacapRepository) {
         map.overlays.add(inacapMarker)
 
         userLocation?.let { loc ->
+            val coneMarker = Marker(map).apply {
+                position = loc
+                // El cono debe estar centrado para rotar bien (0.5, 0.5)
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                // Asume que tienes este recurso creado
+                icon = ContextCompat.getDrawable(context, R.drawable.marker_vision_cone)
+                // Asignamos la rotación de la brújula (negativo porque el mapa rota inverso a veces, prueba + o -)
+                rotation = -userHeading
+                // Esto hace que ignore el touch, para poder dar click al stickman
+                setOnMarkerClickListener { _, _ -> false }
+            }
+            map.overlays.add(coneMarker)
+
             val userMarker = Marker(map).apply {
                 position = loc
                 title = "Tu ubicación"
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                icon = ContextCompat.getDrawable(context, R.drawable.marker_user)
+                icon = ContextCompat.getDrawable(context, R.drawable.marker_position_user)
                 setOnMarkerClickListener { _, _ -> true }
             }
             map.overlays.add(userMarker)
@@ -361,7 +449,11 @@ fun MapScreen(navController: NavHostController, repository: InacapRepository) {
                     position = GeoPoint(incidente.latitud, incidente.longitud)
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                     title = incidente.titulo
-                    icon = getMarkerIconForIncident(context, incidente.titulo ?: "Otro")
+                    icon = getMarkerIconForIncident(
+                        context,
+                        incidente.titulo ?: "Otro",
+                        incidente.tieneComentarios
+                    )
                     setOnMarkerClickListener { _, map ->
                         selectedIncident = incidente
                         map.controller.animateTo(position)
@@ -394,34 +486,65 @@ fun IncidentMapCard(
         } catch (e: Exception) { "" }
     }
 
-    val (icon, color, bgColor) = when {
-        incidente.titulo.contains("Incendio", true) -> Triple(Icons.Filled.LocalFireDepartment, Color(0xFFE64A19), Color(0xFFFBE9E7))
-        incidente.titulo.contains("Robo", true) || incidente.titulo.contains("Acoso", true) -> Triple(Icons.Filled.Security, Color(0xFF5E35B1), Color(0xFFEDE7F6))
-        incidente.titulo.contains("SOS", true) -> Triple(Icons.Filled.NotificationsActive, Color(0xFFD32F2F), Color(0xFFFFEBEE))
-        else -> Triple(Icons.Filled.Info, Color(0xFF0097A7), Color(0xFFE0F7FA))
+    // 1. DETERMINAMOS EL RECURSO (DRAWABLE) Y LOS COLORES DE FONDO
+    // Nota: Usamos el marker "base" (sin la burbuja de mensaje) para la tarjeta,
+    // ya que la tarjeta es grande y clara.
+    val (drawableResId, accentColor, bgColor) = when {
+        incidente.titulo.contains("Seguridad", true) -> Triple(R.drawable.marker_reporte_emergencia, Color(0xFFD32F2F), Color(0xFFFFEBEE))
+        incidente.titulo.contains("Médica", true) -> Triple(R.drawable.marker_reporte_emergencia_medica, Color(0xFFD32F2F), Color(0xFFFFEBEE))
+        incidente.titulo.contains("Incendio", true) -> Triple(R.drawable.marker_reporte_incendio, Color(0xFFE64A19), Color(0xFFFBE9E7))
+        incidente.titulo.contains("Robo", true) -> Triple(R.drawable.marker_reporte_robo, Color(0xFF5E35B1), Color(0xFFEDE7F6))
+        incidente.titulo.contains("Acoso", true) -> Triple(R.drawable.marker_reporte_acoso, Color(0xFF7B1FA2), Color(0xFFF3E5F5))
+        incidente.titulo.contains("SOS", true) -> Triple(R.drawable.marker_alerta_sos, Color(0xFFB71C1C), Color(0xFFFFEBEE))
+        incidente.titulo.contains("Otro", true) -> Triple(R.drawable.marker_reporte_otros, Color(0xFF0097A7), Color(0xFFE0F7FA))
+        // Default / Else
+        else -> Triple(R.drawable.marker_else, Color(0xFF607D8B), Color(0xFFECEFF1))
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth().padding(16.dp).shadow(8.dp, RoundedCornerShape(16.dp)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .shadow(8.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(48.dp).background(bgColor, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = color, modifier = Modifier.size(24.dp))
+                // CAJA DEL ICONO
+                Box(
+                    modifier = Modifier
+                        .size(56.dp) // Un poco más grande para que luzca el marker
+                        .background(bgColor, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = androidx.compose.ui.res.painterResource(id = drawableResId),
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp) // Tamaño del marker dentro de la caja
+                    )
                 }
+
                 Spacer(Modifier.width(16.dp))
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(incidente.titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    if (formattedDate.isNotEmpty()) Text("Reportado a las $formattedDate", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    if (formattedDate.isNotEmpty()) {
+                        Text("Reportado a las $formattedDate", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    }
                 }
                 IconButton(onClick = onClose) { Icon(Icons.Filled.Close, "Cerrar", tint = Color.Gray) }
             }
 
             Spacer(Modifier.height(12.dp))
-            Text(incidente.descripcion, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray, maxLines = 3, overflow = TextOverflow.Ellipsis)
+            Text(
+                text = incidente.descripcion,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.DarkGray,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
             Spacer(Modifier.height(16.dp))
 
             // Botones
@@ -441,7 +564,8 @@ fun IncidentMapCard(
                     Button(
                         onClick = onManage,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = color),
+                        // Usamos el color de acento definido arriba para el botón
+                        colors = ButtonDefaults.buttonColors(containerColor = accentColor),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text("Gestionar")
